@@ -201,7 +201,7 @@ def cli_main():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Skill Aggregator - 任务意图分析 + 技能匹配引擎",
+        description="Skill Aggregator - 🧠 AI Agent Skill Search Engine — Auto-analyze user intent & recommend optimal skills with zero dependencies",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:

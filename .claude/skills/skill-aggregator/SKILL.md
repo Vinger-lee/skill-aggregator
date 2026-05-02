@@ -1,6 +1,6 @@
 ---
 name: skill-aggregator
-description: "🧠 任务意图分析 + 技能匹配引擎"
+description: "🧠 AI Agent Skill Search Engine — Auto-analyze user intent & recommend optimal skills with zero dependencies"
 ---
 
 # Skill Aggregator

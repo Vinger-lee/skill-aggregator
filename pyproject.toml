@@ -9,7 +9,7 @@ description = "🧠 AI Agent Skill Search Engine — Auto-analyze user intent & 
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-keywords = ["ai-agent", "skill-search", "intent-analysis", "nlp", "tf-idf", "chinese-nlp", "semantic-search", "zero-dependencies", "llm", "agent-framework", "python"]
+keywords = ["ai-agent", "python", "nlp", "intent-analysis", "tf-idf", "semantic-search", "skill-discovery", "chinese-nlp", "llm", "agent-framework", "zero-dependencies", "skill-search"]
 authors = [
     {name = "Vinger", email = "vinger@example.com"},
 ]
