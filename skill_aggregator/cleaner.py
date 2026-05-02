@@ -97,12 +97,12 @@ class SkillCleaner:
 
     def _discover_skill_dirs(self) -> List[Path]:
         """发现技能目录（复用 indexer 的逻辑）。"""
-        from .indexer import SKILL_DIRS
-        return SKILL_DIRS
+        from skill_aggregator.indexer import _discover_skill_dirs as _discover
+        return _discover()
 
     def _parse_frontmatter(self, content: str) -> Optional[Dict[str, Any]]:
         """解析 YAML frontmatter（复用 indexer 的逻辑）。"""
-        from .indexer import _parse_yaml_frontmatter
+        from skill_aggregator.indexer import _parse_yaml_frontmatter
         return _parse_yaml_frontmatter(content)
 
     def scan(self) -> Dict[str, Any]:
