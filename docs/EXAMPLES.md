@@ -214,16 +214,6 @@ if config.exists():
 "
 ```
 
-### 代理/网络问题
+### 索引构建失败
 
-如果你在中国大陆使用，GitHub 可能需要代理：
-
-```bash
-# 临时设置 git 代理
-git config --local http.proxy 'http://127.0.0.1:7897'
-git config --local https.proxy 'http://127.0.0.1:7897'
-
-# 完成后清除代理设置
-git config --local --unset http.proxy
-git config --local --unset https.proxy
-```
+确保你有技能目录的读取权限，并且 config.yaml 中的路径配置正确。
