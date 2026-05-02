@@ -1,12 +1,13 @@
 # 🔮 Skill Aggregator
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
-  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python">
-  <img src="https://img.shields.io/badge/dependencies-jieba%20%7C%20stdlib-green" alt="Dependencies">
-  <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code Style">
+  <img src="https://img.shields.io/github/stars/Vinger-lee/skill-aggregator?style=social" alt="Stars">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/dependencies-zero_stdlib%2B-22bb33" alt="零依赖">
+  <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
-  <b>🧠 你的 AI 助手会 600+ 个技能，但你只知道 10 个。Skill Aggregator 帮你找出该用哪个。</b>
+  <b>🤖 你的 AI 助手会 400+ 个技能，但你只知道 10 个。这个工具帮你找到该用哪个。</b>
 </p>
 
 <p align="center">
@@ -22,114 +23,89 @@
 
 ---
 
-## 🤔 你遇到过这个问题吗？
+## 🚀 这是啥？
 
-你装了 Superpowers、Karpathy 的 Planning with Files、一堆 Plugin……你的 AI 助手**已经有 400+ 个技能**了。
+**Skill Aggregator 是一个 AI 技能搜索引擎。** 你用中文或英文描述想做的事，它立刻告诉你该用哪个技能/插件/工具——再也不用翻文件夹瞎猜了。
 
-但你每次还是自己写 prompt？手动翻文件夹找技能名？
-
+```bash
+# 一句话就能找到对的技能
+skill-aggregator "用 Canvas 做个粒子动画"
+# 👉 p5js (65%) + pixel-art (45%) + ideation (30%)
 ```
-❌ 用户：帮我写个 Canvas 动画
-❌ AI：好的，我自己写……（用基础能力硬写，不知道有 p5.js skill）
-✅ 用了 Skill Aggregator：自动匹配到 p5js、pixel-art、creative-ideation 三个 skill
-```
-
-**Skill Aggregator 是 AI 技能的"搜索引擎"**——你描述任务，它告诉你该用哪个 skill。
-
----
 
 ## ⚡ 快速开始
 
 ```bash
+# 零依赖安装——纯 Python 标准库
 pip install skill-aggregator
 
-# 描述你的任务，自动推荐技能
-skill-aggregator "用 React 写一个登录页面的表单验证"
+# 或者直接克隆跑
+git clone https://github.com/Vinger-lee/skill-aggregator.git
+cd skill-aggregator
+python src/aggregator.py "给 API 添加 JWT 认证"
 ```
 
-输出：
+### 🔥 效果
+
 ```
-🎯 意图分析结果
-  ├─ 领域: coding (可信度: 80%)
-  ├─ 活动: create (可信度: 66%)
-  └─ 模糊度: 10% ✓ 足够明确
+🎯 意图分析
+  ├─ 领域: coding (80%)
+  ├─ 活动: create (66%)
+  └─ 模糊度: 10% ✓ 足够清晰
 
-📋 Top-8 推荐技能
-  ├─ 65%  react-component-extraction
-  ├─ 45%  systematic-debugging
-  ├─ 40%  test-driven-development
-  ├─ 30%  node-inspect-debugger
-  ├─ 25%  planning-with-files
-  ├─ 20%  github-code-review
-  ├─ 15%  react-best-practices
-  └─ 15%  chinese-code-review
+📋 Top-8 推荐
+  ├─ 65%  systematic-debugging
+  ├─ 45%  test-driven-development
+  ├─ 40%  node-inspect-debugger
+  ├─ 30%  code-review
+  ├─ 25%  writing-plans
+  └─ 15%  security-review
 
-💡 组合建议: react-component-extraction + test-driven-development 联动
+💡 推荐组合: TDD + systematic-debugging
 ```
 
 ---
 
-## ✨ 为什么牛逼
+## ✨ 功能特性
 
-| 功能 | 说明 |
-|------|------|
-| 🧠 **意图理解** | 不只看关键词，理解你的真实意图（在写 bug 还是在做设计？） |
-| 🈯 **中英双语** | jieba 中文分词 + 英文正则，中英混合任务随便写 |
-| 🔄 **环境感知** | 自动读取 `~/.hermes/config.yaml`，发现你装的所有 skill 目录 |
-| 🎯 **四路评分** | 关键词匹配(40%) + 领域匹配(25%) + TF-IDF相似度(20%) + 优先级(15%) |
-| 🧹 **技能清洗** | 扫描 400+ 个 skill，检测损坏/缺描述/重复等问题 |
-| 📦 **轻量零依赖*** | 纯 Python 标准库（jieba 可选，没装也能跑） |
-| 🔌 **Python API** | `from skill_aggregator import recommend` 一行搞定 |
-
-> \* jieba 是唯一外部依赖，用于中文分词。未安装时自动降级。
+| 功能 | 说明 | 为什么重要 |
+|------|------|-----------|
+| 🧠 **意图引擎** | 自动分析你真正在做什么——修 bug？搭 UI？ | 不会推荐错的技能 |
+| 🈯 **中英文双语** | jieba 分词 + 英文正则 | 输入中文英文都能用 |
+| 🔄 **自动发现** | 扫描 `config.yaml` 里的技能目录 | 装好即用，零配置 |
+| 🎯 **四维评分** | 关键词(40%) + 领域(25%) + TF-IDF(20%) + 优先级(15%) | 比 grep 聪明得多 |
+| 🧹 **健康检查** | 扫描 400+ 技能，检测错误/缺失/重复 | 秒发现坏掉的技能 |
+| 📦 **零依赖** | 纯 Python 标准库 + 可选 jieba | 2 秒装完 |
+| 🔌 **Python API** | `from skill_aggregator import recommend` | 一行代码集成 |
 
 ---
 
-## 🆚 跟其他方案比
+## 📖 使用方式
 
-| 方案 | 智能匹配 | 中文分词 | 环境感知 | 技能清洗 | 零配置 |
-|------|:--:|:--:|:--:|:--:|:--:|
-| **Skill Aggregator** | ✅ TF-IDF | ✅ jieba | ✅ auto | ✅ | ✅ |
-| 手动查文件夹 | ❌ | ❌ | ❌ | ❌ | — |
-| 直接问 AI | ⚠️ 部分 | ⚠️ 部分 | ❌ | ❌ | ✅ |
-| grep 搜索 | ⚠️ 关键词 | ❌ | ❌ | ❌ | ✅ |
-
----
-
-## 📖 更多用法
-
-### 意图分析模式
+### 意图分析（自动检测模糊度）
 
 ```bash
-skill-aggregator --intent-only "帮我搞一下那个接口"
-# 输出:
-# 🎯 领域: coding (可信度: 50%)
-# ⚠️  模糊度: 80% — 需要澄清
-# 💬 建议确认以下问题:
-#   1. 你指的是哪个接口？REST API 还是 GraphQL？
-#   2. 是想修复 bug、添加功能、还是重构？
+# 说得模糊？它会反问澄清
+skill-aggregator --intent-only "修一下 API 那个东西"
+# ⚠️ 模糊度: 80%
+# ❓ 哪个端点？REST 还是 GraphQL？
+# ❓ 修 bug、加功能、还是重构？
 ```
 
 ### 技能健康检查
 
 ```bash
-# 扫描所有技能，检测问题
+# 扫描所有技能的问题
 skill-aggregator --clean
+# 🧹 总数: 390 | 有效: 350 | 问题: 40
+#   8 个错误 —— frontmatter 损坏
+#   10 个警告 —— 缺少描述
 
-# 🧹 技能清洗报告
-#   ├─ 总技能数: 390
-#   ├─ 有效技能: 350
-#   └─ 问题数量: 40
-#
-# 错误 (8)
-#   💥 my-broken-skill — frontmatter 解析失败
-#
-# 警告 (10)
-#   ⚠️  my-skill — 缺少描述
-#   ⚠️  other-skill — 目录为空
-
-# JSON 输出（适合 CI 集成）
+# JSON 输出给 CI 用
 skill-aggregator --clean --json | jq '.issues[] | select(.severity == "error")'
+
+# 自动修复
+skill-aggregator --clean --fix
 ```
 
 ### Python API
@@ -142,10 +118,10 @@ results = recommend("给 API 加 JWT 认证", top_n=5)
 for r in results:
     print(f"{r['skill']}: {r['score']:.0%}")
 
-# 三段式：意图 → 澄清 → 匹配
-intent = analyze_intent("优化数据库查询性能")
+# 三阶段：意图 → 澄清 → 匹配
+intent = analyze_intent("优化数据库查询")
 if intent['ambiguity'] > 0.3:
-    for q in intent['clarifying']:
+    for q in intent['clarifying_questions']:
         print(f"❓ {q}")
 else:
     results = match_by_intent(intent, top_n=5)
@@ -153,80 +129,81 @@ else:
 
 ---
 
-## 🔧 工作原理
+## 🔧 架构
 
 ```
 你的任务描述
       ↓
 ┌─────────────────┐
-│  意图分析引擎    │ → 领域 (coding/design/...)
-│  (intent.py)    │ → 活动类型 (create/fix/...)
-│                 │ → 技术栈检测 (React/Docker/...)
-│                 │ → 模糊度评估
+│  意图引擎        │ → 领域 + 活动 + 模糊度
 └────────┬────────┘
-         ↓ 如果模糊 → 输出澄清问题
-         ↓ 如果清晰 →
+         ↓ 模糊？→ 生成澄清问题
+         ↓ 清晰？→
 ┌─────────────────┐
-│  技能匹配引擎    │ → TF-IDF 余弦相似度
-│  (matcher.py)   │ → 关键词精确匹配
-│  + jieba 分词   │ → 领域 + 优先级加权
-│                 │ → Top-N 排序输出
+│  匹配引擎        │ → TF-IDF + 四维评分
 └────────┬────────┘
          ↓
-┌─────────────────┐
-│  技能索引        │ ← 自动从 config.yaml 发现目录
-│  (indexer.py)   │ ← 增量更新 (hash 检测)
-│                 │ ← 去重 + 元数据提取
-└─────────────────┘
+┌──────────────────────┐
+│  技能索引             │ ← 自动从配置发现
+│  + 清洁器             │ ← 健康检查 + 去重
+└──────────────────────┘
 ```
+
+---
+
+## 🆚 为什么不用 grep？
+
+| 方案 | 智能匹配 | 中文支持 | 自动发现 | 健康检查 |
+|------|:--:|:--:|:--:|:--:|
+| **Skill Aggregator** | ✅ TF-IDF | ✅ jieba | ✅ | ✅ |
+| 手动翻文件夹 | ❌ | ❌ | ❌ | ❌ |
+| 直接问 AI | ⚠️ | ⚠️ | ❌ | ❌ |
+| `grep -r` 搜 | ❌ | ❌ | ❌ | ❌ |
+
+---
+
+## 🌍 谁需要这个？
+
+- **独立开发者** — 装了 50+ 个 AI 技能，记不住所有
+- **团队** — 新人不知道团队积累了什么技能
+- **Agent 构建者** — 在 AI agent 工作流中动态推荐技能
+- **CI 流水线** — `--clean --json` 自动化监测技能健康
 
 ---
 
 ## 📦 安装
 
 ```bash
-# pip 安装
 pip install skill-aggregator
+pip install jieba          # 可选，用于中文分词
 
-# 可选：安装中文分词支持
-pip install jieba
-
-# 开发安装
+# 开发模式
 git clone https://github.com/Vinger-lee/skill-aggregator.git
 cd skill-aggregator
 pip install -e ".[dev]"
 ```
-
----
-
-## 🌍 适用场景
-
-- **个人开发者**：你有 50+ 个 AI 技能，经常忘记有哪些可以用
-- **团队协作**：新人不知道团队积累了哪些 skill，用它快速发现
-- **AI Agent 开发者**：你的 Agent 需要动态发现和推荐 skill
-- **CI/CD 管道**：`skill-aggregator --clean --json` 检测 skill 健康状态
 
 ---
 
 ## 🤝 贡献
 
-欢迎 PR！详见 [CONTRIBUTING.md](CONTRIBUTING.md)
-
-```bash
-git clone https://github.com/Vinger-lee/skill-aggregator.git
-cd skill-aggregator
-pip install -e ".[dev]"
-pytest tests/ -v
-```
+欢迎 PR！见 [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-## 📄 许可证
+## 📊 统计
+
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/Vinger-lee/skill-aggregator" alt="最近提交">
+  <img src="https://img.shields.io/github/repo-size/Vinger-lee/skill-aggregator" alt="仓库大小">
+  <img src="https://img.shields.io/github/languages/code-size/Vinger-lee/skill-aggregator" alt="代码大小">
+  <img src="https://img.shields.io/github/languages/top/Vinger-lee/skill-aggregator" alt="主要语言">
+</p>
+
+---
 
 MIT © 2026 [Vinger](https://github.com/Vinger-lee)
 
----
-
 <p align="center">
-  <sub>Made with ❤️ by Vinger · <a href="https://github.com/Vinger-lee/skill-aggregator">GitHub</a></sub>
+  <sub>用 ❤️ 制作 · <a href="https://github.com/Vinger-lee/skill-aggregator">GitHub</a></sub>
 </p>

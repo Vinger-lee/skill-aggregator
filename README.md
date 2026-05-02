@@ -1,11 +1,13 @@
 # 🔮 Skill Aggregator
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
-  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python">
-  <img src="https://img.shields.io/badge/dependencies-jieba%20%7C%20stdlib-green" alt="Dependencies">
+  <img src="https://img.shields.io/github/stars/Vinger-lee/skill-aggregator?style=social" alt="Stars">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/dependencies-zero_stdlib%2B-22bb33" alt="Zero Deps">
+  <img src="https://img.shields.io/badge/中文-支持-ff6600" alt="中文支持">
   <br>
-  <b>🧠 Your AI assistant has 400+ skills. You only know 10. Skill Aggregator finds the right one.</b>
+  <b>🤖 Your AI agent has 400+ skills. You only know 10. This finds the right one.</b>
 </p>
 
 <p align="center">
@@ -21,46 +23,42 @@
 
 ---
 
-## 🤔 The Problem
+## 🚀 What is Skill Aggregator?
 
-You've installed Superpowers, Karpathy's Planning with Files, and dozens of plugins. Your AI agent has **400+ built-in skills**.
+**Skill Aggregator is a search engine for AI agent skills.** Describe what you want in plain English (or Chinese), and it instantly tells you which skill/plugin/tool to use — no more browsing folders or guessing skill names.
 
-But every time you start a new task:
-- 🔴 You write prompts from scratch
-- 🔴 You manually browse folders looking for skill names
-- 🔴 You have no idea there's a skill that does exactly what you need
-
-**Skill Aggregator is a search engine for AI skills** — describe what you want, it tells you which skill to use.
-
+```bash
+# One command to find the right skill
+skill-aggregator "Build a particle animation with Canvas"
+# 👉 p5js (65%) + pixel-art (45%) + ideation (30%)
 ```
-You: "Build a particle animation with Canvas"
-Skill Aggregator: 👉 p5js (65%) + pixel-art (45%) + creative-ideation (30%)
-```
-
----
 
 ## ⚡ Quick Start
 
 ```bash
+# Zero deps — pure Python stdlib
 pip install skill-aggregator
 
-# Describe your task in natural language
-skill-aggregator "Add JWT authentication to my REST API"
+# Or clone and run instantly
+git clone https://github.com/Vinger-lee/skill-aggregator.git
+cd skill-aggregator
+python src/aggregator.py "Add JWT authentication to my API"
 ```
 
-Output:
+### 🔥 What you get
+
 ```
 🎯 Intent Analysis
-  ├─ Domain: coding (confidence: 80%)
-  ├─ Activity: create (confidence: 66%)
+  ├─ Domain: coding (80%)
+  ├─ Activity: create (66%)
   └─ Ambiguity: 10% ✓ Clear enough
 
 📋 Top-8 Recommendations
   ├─ 65%  systematic-debugging
   ├─ 45%  test-driven-development
   ├─ 40%  node-inspect-debugger
-  ├─ 30%  planning-with-files
-  ├─ 25%  github-code-review
+  ├─ 30%  code-review
+  ├─ 25%  writing-plans
   └─ 15%  security-review
 
 💡 Combo: TDD + systematic-debugging
@@ -70,50 +68,40 @@ Output:
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🧠 **Intent Understanding** | Detects what you're really doing — fixing a bug? designing UI? |
-| 🈯 **Chinese + English** | jieba segmentation for Chinese, regex for English |
-| 🔄 **Environment-Aware** | Auto-discovers skill dirs from `~/.hermes/config.yaml` |
-| 🎯 **4-Dimensional Scoring** | Keywords (40%) + Domain (25%) + TF-IDF (20%) + Priority (15%) |
-| 🧹 **Skill Health Check** | Scan 400+ skills for corruption, missing fields, duplicates |
-| 📦 **Lightweight** | Pure stdlib + optional jieba |
-| 🔌 **Python API** | `from skill_aggregator import recommend` — one line |
-
----
-
-## 🆚 Comparison
-
-| Solution | Smart Matching | Chinese NLP | Env-Aware | Health Scan | Zero Config |
-|----------|:--:|:--:|:--:|:--:|:--:|
-| **Skill Aggregator** | ✅ TF-IDF | ✅ jieba | ✅ auto | ✅ | ✅ |
-| Browse folders | ❌ | ❌ | ❌ | ❌ | — |
-| Ask AI directly | ⚠️ partial | ⚠️ partial | ❌ | ❌ | ✅ |
-| grep search | ⚠️ keyword | ❌ | ❌ | ❌ | ✅ |
+| Feature | What it does | Why you care |
+|---------|-------------|--------------|
+| 🧠 **Intent Engine** | Detects what you're *really* doing — fixing? building? designing? | Stops suggesting the wrong skill |
+| 🈯 **Chinese + English** | jieba segmentation + regex | Works for both languages natively |
+| 🔄 **Auto-Discovery** | Scans `config.yaml` for skill directories | Zero config needed |
+| 🎯 **4D Scoring** | Keywords(40%) + Domain(25%) + TF-IDF(20%) + Priority(15%) | Smarter than grep |
+| 🧹 **Health Check** | Scans 400+ skills for errors, missing fields, duplicates | Catch broken skills instantly |
+| 📦 **Zero Dependencies** | Pure Python stdlib + optional jieba | Install in 2 seconds |
+| 🔌 **Python API** | `from skill_aggregator import recommend` | One-liner integration |
 
 ---
 
 ## 📖 Usage
 
-### Intent Analysis Mode
+### Intent Analysis (auto-detect ambiguity)
 
 ```bash
+# Vague? It asks clarifying questions
 skill-aggregator --intent-only "fix that thing in the API"
-# ⚠️ Ambiguity: 80% — needs clarification
-# ❓ Which API endpoint? REST or GraphQL?
-# ❓ Are you fixing a bug, adding a feature, or refactoring?
+# ⚠️ Ambiguity: 80%
+# ❓ Which endpoint? REST or GraphQL?
+# ❓ Bug, feature, or refactor?
 ```
 
 ### Skill Health Check
 
 ```bash
+# Scan all skills for problems
 skill-aggregator --clean
-# 🧹 Health Report
-#   ├─ Total: 390  | Valid: 350  | Issues: 40
-#   💥 8 errors — broken frontmatter
-#   ⚠️ 10 warnings — missing descriptions
+# 🧹 Total: 390 | Valid: 350 | Issues: 40
+#   8 errors — broken frontmatter
+#   10 warnings — missing descriptions
 
-# JSON output (CI-friendly)
+# JSON output for CI
 skill-aggregator --clean --json | jq '.issues[] | select(.severity == "error")'
 
 # Auto-fix what can be fixed
@@ -133,7 +121,7 @@ for r in results:
 # 3-phase: Intent → Clarify → Match
 intent = analyze_intent("Optimize database queries")
 if intent['ambiguity'] > 0.3:
-    for q in intent['clarifying']:
+    for q in intent['clarifying_questions']:
         print(f"❓ {q}")
 else:
     results = match_by_intent(intent, top_n=5)
@@ -147,19 +135,39 @@ else:
 Your task description
       ↓
 ┌─────────────────┐
-│  Intent Engine   │ → Domain + Activity + Stack + Ambiguity
+│  Intent Engine   │ → Domain + Activity + Ambiguity
 └────────┬────────┘
          ↓ Vague? → generates clarifying questions
          ↓ Clear? →
 ┌─────────────────┐
-│  Match Engine    │ → TF-IDF + jieba + 4-dimension scoring
+│  Match Engine    │ → TF-IDF + 4-dimension scoring
 └────────┬────────┘
          ↓
-┌─────────────────┐
-│  Skill Index     │ ← auto-discovered from config.yaml
-│  + Cleaner       │ ← incremental + dedup + health scan
-└─────────────────┘
+┌──────────────────────┐
+│  Skill Index          │ ← auto-discovered from config
+│  + Cleaner            │ ← health scan + dedup
+└──────────────────────┘
 ```
+
+---
+
+## 🆚 Why Not Just Grep?
+
+| Solution | Smart Matching | Chinese | Auto-Discover | Health Scan |
+|----------|:--:|:--:|:--:|:--:|
+| **Skill Aggregator** | ✅ TF-IDF | ✅ jieba | ✅ | ✅ |
+| Browse folders | ❌ | ❌ | ❌ | ❌ |
+| Ask AI directly | ⚠️ | ⚠️ | ❌ | ❌ |
+| `grep -r` | ❌ | ❌ | ❌ | ❌ |
+
+---
+
+## 🌍 Who Needs This?
+
+- **Solo devs** — 50+ AI skills installed, can't remember them all
+- **Teams** — newcomers don't know what skills the team has accumulated
+- **Agent builders** — dynamically recommend skills in your AI agent pipeline
+- **CI pipelines** — `--clean --json` for automated skill health monitoring
 
 ---
 
@@ -177,23 +185,25 @@ pip install -e ".[dev]"
 
 ---
 
-## 🌍 Who Needs This?
-
-- **Solo devs** — 50+ AI skills installed, can't remember them all
-- **Teams** — newcomers don't know what skills the team has accumulated
-- **Agent builders** — dynamically recommend skills in your AI agent pipeline
-- **CI pipelines** — `--clean --json` for skill health monitoring
-
----
-
 ## 🤝 Contributing
 
 PRs welcome! See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
+## 📊 Stats
+
+<p align="center">
+  <img src="https://img.shields.io/github/last-commit/Vinger-lee/skill-aggregator" alt="Last commit">
+  <img src="https://img.shields.io/github/repo-size/Vinger-lee/skill-aggregator" alt="Repo size">
+  <img src="https://img.shields.io/github/languages/code-size/Vinger-lee/skill-aggregator" alt="Code size">
+  <img src="https://img.shields.io/github/languages/top/Vinger-lee/skill-aggregator" alt="Top language">
+</p>
+
+---
+
 MIT © 2026 [Vinger](https://github.com/Vinger-lee)
 
 <p align="center">
-  <sub>Made with ❤️ by Vinger · <a href="https://github.com/Vinger-lee/skill-aggregator">GitHub</a></sub>
+  <sub>Made with ❤️ · <a href="https://github.com/Vinger-lee/skill-aggregator">GitHub</a></sub>
 </p>
