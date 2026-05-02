@@ -54,10 +54,12 @@ HASH_FILE = INDEX_DIR / "skills.hash"
 
 
 def _compute_skills_hash() -> str:
-    """计算所有 skill 文件的哈希值，用于检测变更。
+    """计算所有 SKILL.md 文件的哈希值，用于检测变更。
+
+    与 indexer.py 保持一致，只追踪 SKILL.md 文件。
 
     Returns:
-        str: 所有 skill 文件修改时间的 MD5 哈希值
+        str: 所有 SKILL.md 文件修改时间的 MD5 哈希值
     """
     from .indexer import SKILL_DIRS
 
@@ -65,10 +67,9 @@ def _compute_skills_hash() -> str:
     for base_dir in SKILL_DIRS:
         if not base_dir.exists():
             continue
-        for pattern in ["**/SKILL.md", "**/*.md"]:
-            for file_path in base_dir.glob(pattern):
-                if file_path.is_file():
-                    file_mtimes.append(f"{file_path}:{file_path.stat().st_mtime}")
+        for file_path in base_dir.rglob("SKILL.md"):
+            if file_path.is_file():
+                file_mtimes.append(f"{file_path}:{file_path.stat().st_mtime}")
 
     content = "\n".join(sorted(file_mtimes))
     return hashlib.md5(content.encode()).hexdigest()
