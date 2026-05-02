@@ -1,43 +1,59 @@
 #!/usr/bin/env python3
 # Copyright (c) 2026 Vinger. MIT License.
 
-"""测试脚本 — 验证匹配算法。"""
+"""pytest 测试套件 — 验证意图分析和匹配算法。"""
 
-import sys
-from pathlib import Path
+import pytest
+from skill_aggregator import recommend, analyze_intent
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from matcher import TaskMatcher
+class TestIntentAnalysis:
+    def test_coding_domain(self):
+        intent = analyze_intent("修复登录页面的 JWT 认证 bug")
+        assert intent["domain"] == "coding"
+        assert intent["activity"] == "fix"
+        assert intent["ambiguity"] < 0.5
 
-# 测试任务
-test_tasks = [
-    "修复 Three.js 地球的黑夜闪烁",
-    "用 Canvas 给 feiyi-web 做墨水动画效果",
-    "跑一下量化回测看看动量策略赚不赚钱",
-    "debug React component state issue",
-    "implement TDD for new feature",
-]
+    def test_creative_domain(self):
+        intent = analyze_intent("用 Canvas 做粒子动画效果")
+        assert intent["domain"] == "creative"
+        assert intent["activity"] == "create"
 
-matcher = TaskMatcher()
+    def test_vague_intent(self):
+        intent = analyze_intent("帮我搞一下那个")
+        assert intent["ambiguity"] > 0.5
+        assert len(intent.get("clarifying", [])) > 0
 
-for task in test_tasks:
-    print(f"\n{'=' * 60}")
-    print(f"任务: {task}")
-    print(f"{'=' * 60}")
+    def test_chinese_english_mixed(self):
+        intent = analyze_intent("用 React 写一个登录页面")
+        assert intent["domain"] == "coding"
+        assert "react" in [s.lower() for s in intent.get("stack", [])]
 
-    # 分析任务
-    features = matcher.analyze(task)
-    print(f"\n特征:")
-    print(f"  - 领域: {features['domain']}")
-    print(f"  - 活动: {features['activity']}")
-    print(f"  - 技术栈: {features['tech_stack']}")
-    print(f"  - 关键词: {features['keywords'][:10]}")
+    def test_finance_domain(self):
+        intent = analyze_intent("跑一下股票回测看看策略表现")
+        assert intent["domain"] == "finance"
 
-    # 匹配技能
-    results = matcher.match(task, top_n=5)
-    print(f"\nTop-5 匹配:")
-    for i, result in enumerate(results, 1):
-        print(
-            f"  {i}. [{result['score']:.2f}] {result['skill']} ({result['category']})"
-        )
+
+class TestRecommendations:
+    def test_recommend_returns_results(self):
+        results = recommend("用 Python 写单元测试", top_n=5, verbose=False)
+        assert len(results) > 0
+        assert all("skill" in r for r in results)
+        assert all("score" in r for r in results)
+
+    def test_recommend_sorted_by_score(self):
+        results = recommend("部署 Docker 容器到云服务器", top_n=8, verbose=False)
+        scores = [r["score"] for r in results]
+        assert scores == sorted(scores, reverse=True)
+
+    def test_empty_input_graceful(self):
+        results = recommend("", top_n=3, verbose=False)
+        assert isinstance(results, list)
+
+    def test_pure_english(self):
+        results = recommend("fix auth bug in login page", top_n=3, verbose=False)
+        assert len(results) > 0
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

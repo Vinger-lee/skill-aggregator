@@ -339,7 +339,7 @@ class TaskMatcher:
 
         # 匹配每个技能
         results = []
-        for skill in skills:
+        for idx, skill in enumerate(skills):
             # 1. 关键词精确匹配
             skill_text = f"{skill['name']} {skill['description']}".lower()
             keyword_matches = sum(
@@ -355,10 +355,8 @@ class TaskMatcher:
             elif "general" in task_features["domain"]:
                 domain_score = 0.5
 
-            # 3. TF-IDF 余弦相似度
-            skill_tokens = self._tokenize(
-                f"{skill['name']} {skill['description']} {' '.join(skill.get('tags', []))}"
-            )
+            # 3. TF-IDF 余弦相似度（复用已计算的 tokens）
+            skill_tokens = all_docs[idx]
             skill_tf = self._compute_tf(skill_tokens)
             skill_tfidf = self._compute_tfidf(skill_tf, idf)
             similarity_score = self._cosine_similarity(task_tfidf, skill_tfidf)

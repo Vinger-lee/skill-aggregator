@@ -37,6 +37,12 @@ Documentation = "https://github.com/vinger-lee/skill-aggregator#readme"
 [project.scripts]
 skill-aggregator = "skill_aggregator.aggregator:cli_main"
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["skill_aggregator*"]

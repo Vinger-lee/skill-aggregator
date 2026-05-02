@@ -1,2 +1,1 @@
-# Skill Aggregator
-# Dependencies are managed by the system Python
+jieba>=0.42.1

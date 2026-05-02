@@ -189,7 +189,7 @@ class SkillIndexer:
         """
         self.index_dir = index_dir or Path.home() / ".skill-aggregator"
         self.index_file = self.index_dir / "index.json"
-        self.hash_file = self.index_dir / "files.hash"
+        self.hash_file = self.index_dir / "skills.hash"
         self.skill_dirs = _discover_skill_dirs()
 
     # ------------------------------------------------------------------

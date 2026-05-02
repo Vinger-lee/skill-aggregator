@@ -213,19 +213,28 @@ def cli_main():
         epilog="""
 示例:
   # 标准模式：分析任务并推荐技能
-  skill-aggregator "修复 Three.js 地球的黑夜闪烁"
+  skill-aggregator "用 React 写一个登录页面的表单验证"
 
   # 意图分析模式：只分析意图，不匹配技能
-  skill-aggregator --intent-only "帮我搞一下那个动画"
+  skill-aggregator --intent-only "帮我搞一下那个接口"
 
   # 澄清模式：输出澄清建议
-  skill-aggregator --clarify "做个水墨动画"
+  skill-aggregator --clarify "做个数据仪表盘"
 
   # 技能清洗：扫描并检测技能问题
   skill-aggregator clean
   skill-aggregator clean --json
   skill-aggregator clean --fix
         """,
+    )
+
+    parser.add_argument(
+        "--version", action="version",
+        version=f"%(prog)s {__import__('skill_aggregator').__version__}"
+    )
+    parser.add_argument(
+        "--no-color", action="store_true",
+        help="禁用彩色输出（适用于 CI/管道）"
     )
 
     subparsers = parser.add_subparsers(dest="command", help="子命令")
