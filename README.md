@@ -9,6 +9,17 @@
   <b>🧠 你的 AI 助手会 600+ 个技能，但你只知道 10 个。Skill Aggregator 帮你找出该用哪个。</b>
 </p>
 
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README_CN.md">中文</a> ·
+  <a href="docs/i18n/README.ja.md">日本語</a> ·
+  <a href="docs/i18n/README.ko.md">한국어</a> ·
+  <a href="docs/i18n/README.fr.md">Français</a> ·
+  <a href="docs/i18n/README.es.md">Español</a> ·
+  <a href="docs/i18n/README.ru.md">Русский</a> ·
+  <a href="docs/i18n/README.ar.md">العربية</a>
+</p>
+
 ---
 
 ## 🤔 你遇到过这个问题吗？
@@ -103,7 +114,7 @@ skill-aggregator --intent-only "帮我搞一下那个接口"
 
 ```bash
 # 扫描所有技能，检测问题
-skill-aggregator clean
+skill-aggregator --clean
 
 # 🧹 技能清洗报告
 #   ├─ 总技能数: 390
@@ -118,7 +129,7 @@ skill-aggregator clean
 #   ⚠️  other-skill — 目录为空
 
 # JSON 输出（适合 CI 集成）
-skill-aggregator clean --json | jq '.issues[] | select(.severity == "error")'
+skill-aggregator --clean --json | jq '.issues[] | select(.severity == "error")'
 ```
 
 ### Python API
@@ -193,7 +204,7 @@ pip install -e ".[dev]"
 - **个人开发者**：你有 50+ 个 AI 技能，经常忘记有哪些可以用
 - **团队协作**：新人不知道团队积累了哪些 skill，用它快速发现
 - **AI Agent 开发者**：你的 Agent 需要动态发现和推荐 skill
-- **CI/CD 管道**：`skill-aggregator clean --json` 检测 skill 健康状态
+- **CI/CD 管道**：`skill-aggregator --clean --json` 检测 skill 健康状态
 
 ---
 

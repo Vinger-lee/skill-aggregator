@@ -78,12 +78,13 @@ Phase 1: 意图分析
   └─ 模糊度: 0.7 ⬅️ 模糊，需要确认
 
 Phase 2: 确认
-  问: "宝宝，你说的是 feiyi-web 那个非遗项目吗？
+  问: "你的项目是 Web 前端项目吗？
       你想做哪种动画？
-      1️⃣ 3D地球出场动效
-      2️⃣ 页面滚动水墨效果
-      3️⃣ 卡片hover交互动画
+      1️⃣ 3D 场景出场动效
+      2️⃣ 页面滚动视差效果
+      3️⃣ 卡片 hover 交互动画
       4️⃣ 其他（你来说）"
+
 
 Phase 3: 加载技能
   → 水墨 → 加载: pixel-art, p5js, creative-ideation, systematic-debugging

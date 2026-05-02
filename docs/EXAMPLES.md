@@ -56,8 +56,8 @@ python3 -c "import json; from pathlib import Path; data = json.load(open(Path.ho
 python3 -m skill_aggregator --force
 
 # 技能健康检查
-python3 -m skill_aggregator clean
-python3 -m skill_aggregator clean --json
+python3 -m skill_aggregator --clean
+python3 -m skill_aggregator --clean --json
 ```
 
 ## 高级用法
@@ -66,7 +66,7 @@ python3 -m skill_aggregator clean --json
 
 ```bash
 # 扫描并报告问题
-skill-aggregator clean
+skill-aggregator --clean
 # 输出:
 # 🧹 技能清洗报告
 #   ├─ 总技能数: 390
@@ -74,10 +74,10 @@ skill-aggregator clean
 #   └─ 问题数量: 40
 
 # JSON 输出（便于集成到 CI）
-skill-aggregator clean --json | jq '.issues[] | select(.severity == "error")'
+skill-aggregator --clean --json | jq '.issues[] | select(.severity == "error")'
 
 # 自动修复可修复的问题
-skill-aggregator clean --fix
+skill-aggregator --clean --fix
 ```
 
 ### 自定义匹配权重
@@ -142,7 +142,7 @@ git commit -m "feat: 用户认证模块"
 skill-aggregator "用户认证"
 
 # CI 集成：检测技能健康状态
-skill-aggregator clean --json | python3 -c "
+skill-aggregator --clean --json | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 errors = [i for i in data['issues'] if i['severity'] == 'error']

@@ -48,7 +48,7 @@ skill-aggregator/
     "activity": "fix",            # 活动类型
     "activity_confidence": 0.90,  # 活动可信度
     "stack": ["react", "three.js"], # 技术栈
-    "project": "feiyi-web",       # 项目名
+    "project": "my-project",       # 项目名
     "goal": "修复黑夜闪烁问题",    # 目标描述
     "ambiguity": 0.2,             # 模糊度 (0-1)
     "clarifying": [...]           # 澄清问题（如果需要）

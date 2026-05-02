@@ -9,6 +9,33 @@ import re
 from typing import Dict, List, Optional
 
 
+# 预编译正则表达式（模块级优化）
+_DOMAIN_REGEX = None
+_ACTIVITY_REGEX = None
+
+
+def _get_domain_regex():
+    """获取预编译的领域关键词正则表达式。"""
+    global _DOMAIN_REGEX
+    if _DOMAIN_REGEX is None:
+        _DOMAIN_REGEX = {
+            domain: re.compile('|'.join(re.escape(kw) for kw in keywords), re.IGNORECASE)
+            for domain, keywords in DOMAIN_KEYWORDS.items()
+        }
+    return _DOMAIN_REGEX
+
+
+def _get_activity_regex():
+    """获取预编译的活动关键词正则表达式。"""
+    global _ACTIVITY_REGEX
+    if _ACTIVITY_REGEX is None:
+        _ACTIVITY_REGEX = {
+            activity: re.compile('|'.join(re.escape(kw) for kw in keywords), re.IGNORECASE)
+            for activity, keywords in ACTIVITY_KEYWORDS.items()
+        }
+    return _ACTIVITY_REGEX
+
+
 # 领域判定关键词表
 DOMAIN_KEYWORDS = {
     "coding": [
@@ -112,8 +139,6 @@ TECH_STACK_PATTERNS = [
 
 # 项目名称模式（可扩展）
 PROJECT_PATTERNS = [
-    r"\bfeiyi[-_]?web\b",
-    r"\bquant\b",
     r"\bskill[-_]?aggregator\b",
 ]
 
@@ -141,12 +166,13 @@ def analyze_intent(task: str) -> Dict:
     """
     task_lower = task.lower()
 
-    # 1. 提取领域
+    # 1. 提取领域（使用预编译正则）
+    domain_regex = _get_domain_regex()
     domain_scores = {}
-    for domain, keywords in DOMAIN_KEYWORDS.items():
-        score = sum(1 for kw in keywords if kw in task_lower)
-        if score > 0:
-            domain_scores[domain] = score
+    for domain, regex in domain_regex.items():
+        matches = regex.findall(task_lower)
+        if matches:
+            domain_scores[domain] = len(matches)
 
     # 选择得分最高的领域
     if domain_scores:
@@ -156,12 +182,13 @@ def analyze_intent(task: str) -> Dict:
         domain = "general"
         domain_confidence = 0.3
 
-    # 2. 提取活动类型
+    # 2. 提取活动类型（使用预编译正则）
+    activity_regex = _get_activity_regex()
     activity_scores = {}
-    for activity, keywords in ACTIVITY_KEYWORDS.items():
-        score = sum(1 for kw in keywords if kw in task_lower)
-        if score > 0:
-            activity_scores[activity] = score
+    for activity, regex in activity_regex.items():
+        matches = regex.findall(task_lower)
+        if matches:
+            activity_scores[activity] = len(matches)
 
     if activity_scores:
         activity = max(activity_scores, key=activity_scores.get)
@@ -287,13 +314,13 @@ def _generate_clarifying_questions(
     if not project:
         questions.append({
             "option": "A" if not questions else chr(ord(questions[-1]["option"]) + 1),
-            "label": "在 feiyi-web 项目",
-            "detail": "飞翼 Web 项目（前端展示、动画效果）",
+            "label": "在前端项目",
+            "detail": "Web 前端项目（React/Vue、UI 动画效果）",
         })
         questions.append({
             "option": chr(ord(questions[-1]["option"]) + 1),
-            "label": "在 quant 项目",
-            "detail": "量化交易项目（回测、策略、数据分析）",
+            "label": "在后端/数据项目",
+            "detail": "后端服务或数据处理项目（API、数据分析）",
         })
         questions.append({
             "option": chr(ord(questions[-1]["option"]) + 1),

@@ -11,7 +11,7 @@ Skill Aggregator 是一个元技能（meta-skill），用于在 AI Agent 启动�
 ```
 
 ### 1. 任务分析器 (Task Analyzer)
-- 从用户输入中提取：**领域**（coding/design/marketing...）、**活动类型**（create/fix/analyze/deploy...）、**关键技术**（React/Python/A股...）、**上下文**（quant/feiyi-web/...）
+- 从用户输入中提取：**领域**（coding/design/marketing...）、**活动类型**（create/fix/analyze/deploy...）、**关键技术**（React/Python/Docker...）、**上下文**（项目名/环境...）
 - 使用 NLP 关键词提取 + 语义匹配
 
 ### 2. 技能索引 (Skill Index)

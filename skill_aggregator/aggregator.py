@@ -16,18 +16,7 @@ from matcher import TaskMatcher, match_by_intent
 from intent import analyze_intent
 
 
-# ANSI 颜色代码
-class Colors:
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    DIM = "\033[2m"
-    RED = "\033[91m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    MAGENTA = "\033[95m"
-    CYAN = "\033[96m"
-    WHITE = "\033[97m"
+from .colors import Colors
 
 
 def format_percentage(score: float) -> str:
@@ -190,8 +179,12 @@ def recommend(task: str, top_n: int = 8, verbose: bool = True) -> List[Dict]:
             if verbose:
                 print(f"{Colors.GREEN}✓ 索引更新完成{Colors.RESET}")
 
-    # 匹配技能
-    matcher = TaskMatcher()
+    # 匹配技能（复用已构建的索引数据，避免重复读取）
+    import json
+    with open(index_path, "r", encoding="utf-8") as f:
+        index_data = json.load(f)
+
+    matcher = TaskMatcher(index_data=index_data)
     features = matcher.analyze(task)
     results = matcher.match(task, top_n=top_n)
 
@@ -222,9 +215,9 @@ def cli_main():
   skill-aggregator --clarify "做个数据仪表盘"
 
   # 技能清洗：扫描并检测技能问题
-  skill-aggregator clean
-  skill-aggregator clean --json
-  skill-aggregator clean --fix
+  skill-aggregator --clean
+  skill-aggregator --clean --json
+  skill-aggregator --clean --fix
         """,
     )
 
@@ -236,24 +229,6 @@ def cli_main():
         "--no-color", action="store_true",
         help="禁用彩色输出（适用于 CI/管道）"
     )
-
-    subparsers = parser.add_subparsers(dest="command", help="子命令")
-
-    # clean 子命令
-    clean_parser = subparsers.add_parser("clean", help="扫描并检测技能问题")
-    clean_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="输出 JSON 格式",
-    )
-    clean_parser.add_argument(
-        "--fix",
-        action="store_true",
-        help="自动修复可修复的问题（默认 dry_run=True）",
-    )
-
-    # 主命令参数
-    parser.add_argument("task", nargs="*", help="任务描述")
     parser.add_argument(
         "--intent-only",
         action="store_true",
@@ -265,17 +240,27 @@ def cli_main():
         help="输出澄清建议（Phase 2）",
     )
     parser.add_argument(
-        "--top-n",
-        type=int,
-        default=8,
-        help="返回 Top-N 技能推荐（默认: 8）",
+        "--top-n", type=int, default=8, help="返回 Top-N 结果"
     )
+    parser.add_argument(
+        "--clean", action="store_true",
+        help="扫描并检测技能问题"
+    )
+    parser.add_argument(
+        "--fix", action="store_true",
+        help="配合 --clean 使用：自动修复可修复的问题"
+    )
+    parser.add_argument(
+        "--json", action="store_true",
+        help="配合 --clean 使用：输出 JSON 格式"
+    )
+    parser.add_argument("task", nargs="*", help="任务描述")
 
     args = parser.parse_args()
 
-    # 处理 clean 子命令
-    if args.command == "clean":
-        from cleaner import SkillCleaner
+    # 处理 clean 命令
+    if args.clean:
+        from skill_aggregator.cleaner import SkillCleaner
         import json as json_module
 
         cleaner = SkillCleaner()

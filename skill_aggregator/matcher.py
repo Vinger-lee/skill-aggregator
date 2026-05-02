@@ -19,16 +19,17 @@ class TaskMatcher:
     分析用户任务描述，提取特征并匹配最相关的技能。
     """
 
-    def __init__(self, index_path: Path = None):
+    def __init__(self, index_path: Path = None, index_data: Dict = None):
         """初始化匹配引擎。
 
         Args:
             index_path: 索引文件路径，默认为 ~/.skill-aggregator/index.json
+            index_data: 预加载的索引数据（可选），传入后跳过文件读取
         """
         if index_path is None:
             index_path = Path.home() / ".skill-aggregator" / "index.json"
         self.index_path = index_path
-        self.index_data = self._load_index()
+        self.index_data = index_data if index_data is not None else self._load_index()
 
         # 核心工作流技能（优先级加权）
         self.priority_skills = {
@@ -121,8 +122,15 @@ class TaskMatcher:
 
         except ImportError:
             # jieba 未安装，回退到简单分词
+            # 对中文文本使用相邻 bigram 作为基本分词
             words = re.findall(r"\b\w+\b", text_lower)
-            return [w for w in words if w not in stopwords and len(w) > 1]
+            result = [w for w in words if w not in stopwords and len(w) > 1]
+            if has_cjk and not result:
+                # 纯中文无英文词：用 CJK 字符 bigram
+                cjk_chars = re.findall(r'[一-鿿]', text_lower)
+                result = [cjk_chars[i] + cjk_chars[i+1]
+                          for i in range(len(cjk_chars)-1)]
+            return result
 
     def _compute_tf(self, tokens: List[str]) -> Dict[str, float]:
         """计算词频（TF）。

@@ -6,25 +6,14 @@
 """
 
 import json
+import re
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from collections import Counter
 
-
-# ANSI 颜色代码
-class Colors:
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    DIM = "\033[2m"
-    RED = "\033[91m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    MAGENTA = "\033[95m"
-    CYAN = "\033[96m"
-
+from .colors import Colors
 
 # 问题严重性级别
 class Severity:
@@ -33,63 +22,54 @@ class Severity:
     INFO = "info"
 
 
-# 问题类型定义
 ISSUE_TYPES = {
     "missing_frontmatter": {
-        "severity": Severity.ERROR,
-        "description": "SKILL.md 没有 YAML frontmatter",
+        "severity": "error",
         "emoji": "❌",
+        "detail": "文件缺少 YAML frontmatter",
     },
     "broken_frontmatter": {
-        "severity": Severity.ERROR,
-        "description": "frontmatter 存在但解析失败",
+        "severity": "error",
         "emoji": "💥",
+        "detail": "frontmatter 解析失败",
     },
     "missing_name": {
-        "severity": Severity.ERROR,
-        "description": "frontmatter 缺 name 字段",
-        "emoji": "🚫",
+        "severity": "error",
+        "emoji": "🏷️",
+        "detail": "frontmatter 缺少 name 字段",
     },
     "missing_description": {
-        "severity": Severity.WARNING,
-        "description": "description 为空或太短(<10字符)",
+        "severity": "warning",
         "emoji": "⚠️",
+        "detail": "description 太短或为空",
     },
     "empty_skill_dir": {
-        "severity": Severity.WARNING,
-        "description": "目录存在但没有 SKILL.md",
-        "emoji": "📁",
+        "severity": "warning",
+        "emoji": "📂",
+        "detail": "目录存在但没有 SKILL.md",
     },
     "duplicate_name": {
-        "severity": Severity.INFO,
-        "description": "同名技能出现在多个目录",
-        "emoji": "ℹ️",
+        "severity": "info",
+        "emoji": "🔄",
+        "detail": "同名技能出现在多个目录",
     },
     "no_tags": {
-        "severity": Severity.INFO,
-        "description": "没有 tags/keywords 字段",
+        "severity": "info",
         "emoji": "🏷️",
+        "detail": "缺少 tags 或 keywords 字段",
     },
     "stale_skill": {
-        "severity": Severity.INFO,
-        "description": "SKILL.md 超过 180 天未修改",
-        "emoji": "⏰",
+        "severity": "info",
+        "emoji": "🕐",
+        "detail": "SKILL.md 超过 180 天未修改",
     },
 }
 
 
 class SkillCleaner:
-    """技能清洗器。
+    """技能清洗器 — 扫描、报告和修复技能问题。"""
 
-    扫描所有技能目录，检测问题并提供修复建议。
-    """
-
-    def __init__(self, index_path: Optional[Path] = None):
-        """初始化清洗器。
-
-        Args:
-            index_path: 索引文件路径，默认为 ~/.skill-aggregator/index.json
-        """
+    def __init__(self, index_path: Path = None):
         if index_path is None:
             index_path = Path.home() / ".skill-aggregator" / "index.json"
         self.index_path = index_path
@@ -106,173 +86,175 @@ class SkillCleaner:
         return _parse_yaml_frontmatter(content)
 
     def scan(self) -> Dict[str, Any]:
-        """扫描所有技能，检测问题。
-
-        Returns:
-            扫描结果字典，包含总数、有效数和问题列表
-        """
-        issues: List[Dict[str, Any]] = []
-        skill_names: Dict[str, List[str]] = {}
-        total_skills = 0
-        valid_skills = 0
+        """扫描所有技能，检测问题。"""
+        issues: List[Dict] = []
+        seen_names: Dict[str, str] = {}
+        total = 0
 
         for skill_dir in self.skill_dirs:
             if not skill_dir.exists():
                 continue
 
             for skill_file in skill_dir.rglob("SKILL.md"):
-                total_skills += 1
-                file_issues = self._check_skill_file(skill_file)
+                total += 1
+                file_issues, content = self._check_skill_file(skill_file)
 
-                if not file_issues:
-                    valid_skills += 1
+                # 复用已读取的 content，避免重复读文件
+                if content:
+                    try:
+                        frontmatter = self._parse_frontmatter(content)
+                        if frontmatter:
+                            name = frontmatter.get("name", "")
+                            if name and name in seen_names:
+                                issues.append({
+                                    "skill": name,
+                                    "file_path": str(skill_file),
+                                    "type": "duplicate_name",
+                                    "severity": ISSUE_TYPES["duplicate_name"]["severity"],
+                                    "detail": f"与 {seen_names[name]} 重名",
+                                })
+                            else:
+                                seen_names[name] = str(skill_file)
+                    except Exception:
+                        pass
 
                 issues.extend(file_issues)
 
-                try:
-                    content = skill_file.read_text(encoding="utf-8")
-                    frontmatter = self._parse_frontmatter(content)
-                    if frontmatter and frontmatter.get("name"):
-                        name = frontmatter["name"]
-                        if name not in skill_names:
-                            skill_names[name] = []
-                        skill_names[name].append(str(skill_file))
-                except Exception:
-                    pass
-
-        for name, paths in skill_names.items():
-            if len(paths) > 1:
-                for path in paths:
+            # 检查空目录
+            for subdir in skill_dir.iterdir():
+                if subdir.is_dir() and not any(subdir.rglob("SKILL.md")):
                     issues.append({
-                        "skill": name,
-                        "file_path": path,
-                        "type": "duplicate_name",
-                        "severity": Severity.INFO,
-                        "detail": f"同名技能出现在 {len(paths)} 个目录",
+                        "skill": subdir.name,
+                        "file_path": str(subdir),
+                        "type": "empty_skill_dir",
+                        "severity": ISSUE_TYPES["empty_skill_dir"]["severity"],
+                        "detail": ISSUE_TYPES["empty_skill_dir"]["detail"],
                     })
 
+        valid = total - len([i for i in issues if i["severity"] == "error"])
+
         return {
-            "total": total_skills,
-            "valid": valid_skills,
-            "issues": issues,
+            "total": total,
+            "valid": valid,
+            "issues": sorted(issues, key=lambda x: {
+                "error": 0, "warning": 1, "info": 2
+            }[x["severity"]]),
         }
 
-    def _check_skill_file(self, file_path: Path) -> List[Dict[str, Any]]:
-        """检查单个技能文件。"""
-        issues = []
+    def _check_skill_file(self, file_path: Path) -> tuple:
+        """检查单个技能文件，返回 (issues, content)。"""
+        issues: List[Dict] = []
+        skill_name = file_path.parent.name
 
         try:
             content = file_path.read_text(encoding="utf-8")
-        except Exception as e:
+        except Exception:
             issues.append({
-                "skill": file_path.parent.name,
+                "skill": skill_name,
                 "file_path": str(file_path),
                 "type": "broken_frontmatter",
-                "severity": Severity.ERROR,
-                "detail": f"文件读取失败: {str(e)}",
+                "severity": "error",
+                "detail": "文件无法读取",
             })
-            return issues
+            return issues, ""
 
+        # 检查 frontmatter
         if not content.strip().startswith("---"):
             issues.append({
-                "skill": file_path.parent.name,
+                "skill": skill_name,
                 "file_path": str(file_path),
                 "type": "missing_frontmatter",
-                "severity": Severity.ERROR,
-                "detail": "文件缺少 YAML frontmatter",
+                "severity": "error",
+                "detail": ISSUE_TYPES["missing_frontmatter"]["detail"],
             })
-            return issues
+            return issues, content
 
         frontmatter = self._parse_frontmatter(content)
-        if not frontmatter:
+        if frontmatter is None:
             issues.append({
-                "skill": file_path.parent.name,
+                "skill": skill_name,
                 "file_path": str(file_path),
                 "type": "broken_frontmatter",
-                "severity": Severity.ERROR,
-                "detail": "frontmatter 解析失败",
+                "severity": "error",
+                "detail": ISSUE_TYPES["broken_frontmatter"]["detail"],
             })
-            return issues
+            return issues, content
 
-        skill_name = frontmatter.get("name") or file_path.parent.name
-
-        if not frontmatter.get("name"):
+        # 检查 name
+        name = frontmatter.get("name", "")
+        if not name:
             issues.append({
                 "skill": skill_name,
                 "file_path": str(file_path),
                 "type": "missing_name",
-                "severity": Severity.ERROR,
-                "detail": "frontmatter 缺少 name 字段",
+                "severity": "error",
+                "detail": ISSUE_TYPES["missing_name"]["detail"],
             })
 
+        # 检查 description
         description = frontmatter.get("description", "")
         if not description or len(str(description).strip()) < 10:
             issues.append({
-                "skill": skill_name,
+                "skill": name or skill_name,
                 "file_path": str(file_path),
                 "type": "missing_description",
-                "severity": Severity.WARNING,
+                "severity": "warning",
                 "detail": f"description 太短或为空 (当前: {len(str(description).strip())} 字符)",
             })
 
-        tags = frontmatter.get("tags") or frontmatter.get("keywords")
-        if not tags or (isinstance(tags, list) and len(tags) == 0):
+        # 检查 tags
+        tags = frontmatter.get("tags", frontmatter.get("keywords", []))
+        if not tags:
             issues.append({
-                "skill": skill_name,
+                "skill": name or skill_name,
                 "file_path": str(file_path),
                 "type": "no_tags",
-                "severity": Severity.INFO,
-                "detail": "缺少 tags 或 keywords 字段",
+                "severity": "info",
+                "detail": ISSUE_TYPES["no_tags"]["detail"],
             })
 
+        # 检查是否过期
         try:
             mtime = file_path.stat().st_mtime
-            days_old = (time.time() - mtime) / 86400
-            if days_old > 180:
+            age_days = (time.time() - mtime) / 86400
+            if age_days > 180:
                 issues.append({
-                    "skill": skill_name,
+                    "skill": name or skill_name,
                     "file_path": str(file_path),
                     "type": "stale_skill",
-                    "severity": Severity.INFO,
-                    "detail": f"文件已 {int(days_old)} 天未修改",
+                    "severity": "info",
+                    "detail": f"已 {int(age_days)} 天未修改",
                 })
         except Exception:
             pass
 
-        return issues
+        return issues, content
 
     def report(self) -> str:
-        """生成人类可读的报告（终端彩色输出）。"""
+        """生成人类可读的彩色报告。"""
         scan_result = self.scan()
+        lines = [
+            f"🧹 技能清洗报告",
+            f"  ├─ 总技能数: {scan_result['total']}",
+            f"  ├─ 有效技能: {scan_result['valid']}",
+            f"  └─ 问题数量: {len(scan_result['issues'])}",
+            "",
+        ]
 
-        lines = []
-        lines.append(f"\n{Colors.CYAN}🧹 技能清洗报告{Colors.RESET}")
-        lines.append(f"  ├─ 总技能数: {Colors.BOLD}{scan_result['total']}{Colors.RESET}")
-        lines.append(f"  ├─ 有效技能: {Colors.GREEN}{scan_result['valid']}{Colors.RESET}")
-        lines.append(f"  └─ 问题数量: {Colors.RED}{len(scan_result['issues'])}{Colors.RESET}\n")
+        # 按严重性分组
+        grouped: Dict[str, List] = {"error": [], "warning": [], "info": []}
+        for issue in scan_result["issues"]:
+            grouped[issue["severity"]].append(issue)
 
-        if not scan_result['issues']:
-            lines.append(f"{Colors.GREEN}✓ 所有技能都通过检查！{Colors.RESET}")
-            return "\n".join(lines)
-
-        issues_by_severity = {
-            Severity.ERROR: [],
-            Severity.WARNING: [],
-            Severity.INFO: [],
-        }
-
-        for issue in scan_result['issues']:
-            issues_by_severity[issue['severity']].append(issue)
-
-        for severity in [Severity.ERROR, Severity.WARNING, Severity.INFO]:
-            issues = issues_by_severity[severity]
+        for severity in ["error", "warning", "info"]:
+            issues = grouped[severity]
             if not issues:
                 continue
 
-            if severity == Severity.ERROR:
+            if severity == "error":
                 color = Colors.RED
                 label = "错误"
-            elif severity == Severity.WARNING:
+            elif severity == "warning":
                 color = Colors.YELLOW
                 label = "警告"
             else:
@@ -301,15 +283,22 @@ class SkillCleaner:
         failed = []
 
         for issue in scan_result['issues']:
-            if issue['type'] == 'missing_description':
-                if dry_run:
+            handlers = {
+                'missing_description': self._fix_missing_description,
+                'missing_name': self._fix_missing_name,
+                'no_tags': self._fix_no_tags,
+            }
+            handler = handlers.get(issue['type'])
+            if not handler:
+                continue
+            if dry_run:
+                fixed.append(issue)
+            else:
+                try:
+                    handler(Path(issue['file_path']))
                     fixed.append(issue)
-                else:
-                    try:
-                        self._fix_missing_description(Path(issue['file_path']))
-                        fixed.append(issue)
-                    except Exception as e:
-                        failed.append({**issue, 'error': str(e)})
+                except Exception as e:
+                    failed.append({**issue, 'error': str(e)})
 
         return {
             'dry_run': dry_run,
@@ -351,4 +340,68 @@ class SkillCleaner:
             else:
                 new_lines.append(line)
 
+        file_path.write_text("\n".join(new_lines), encoding="utf-8")
+
+    def _fix_missing_name(self, file_path: Path) -> None:
+        """修复缺失的 name 字段 — 从目录名生成。"""
+        content = file_path.read_text(encoding="utf-8")
+        dir_name = file_path.parent.name
+        lines = content.splitlines()
+        new_lines = []
+        in_frontmatter = False
+        added = False
+        for line in lines:
+            if line.strip() == "---":
+                if not in_frontmatter:
+                    in_frontmatter = True
+                    new_lines.append(line)
+                    new_lines.append(f"name: {dir_name}")
+                    added = True
+                else:
+                    if not added:
+                        new_lines.append(f"name: {dir_name}")
+                    new_lines.append(line)
+            else:
+                new_lines.append(line)
+        if not added:
+            new_lines.insert(0, f"name: {dir_name}")
+            new_lines.insert(0, "---")
+            new_lines.append("---")
+        file_path.write_text("\n".join(new_lines), encoding="utf-8")
+
+    def _fix_no_tags(self, file_path: Path) -> None:
+        """修复缺失的 tags — 从 description 提取关键词。"""
+        content = file_path.read_text(encoding="utf-8")
+        frontmatter = self._parse_frontmatter(content)
+        if not frontmatter:
+            return
+        desc = frontmatter.get("description", "")
+        if not desc:
+            return
+        words = re.findall(r"\b[a-z]+\b", str(desc).lower())
+        stopwords = {"the", "a", "an", "and", "or", "in", "on", "to", "for",
+                     "of", "with", "by", "from", "is", "are", "this", "that",
+                     "use", "used", "can", "how", "your", "you"}
+        tags = [w for w in words if w not in stopwords and len(w) > 2][:8]
+        if not tags:
+            return
+        tag_line = f"tags: [{', '.join(tags)}]"
+        lines = content.splitlines()
+        new_lines = []
+        in_frontmatter = False
+        added = False
+        for line in lines:
+            if line.strip() == "---":
+                if not in_frontmatter:
+                    in_frontmatter = True
+                    new_lines.append(line)
+                else:
+                    if not added:
+                        new_lines.append(tag_line)
+                    new_lines.append(line)
+            else:
+                new_lines.append(line)
+        if not added:
+            idx = next((i for i, l in enumerate(new_lines) if l.strip() == "---"), len(new_lines)-1)
+            new_lines.insert(idx, tag_line)
         file_path.write_text("\n".join(new_lines), encoding="utf-8")

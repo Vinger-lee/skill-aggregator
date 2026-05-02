@@ -8,7 +8,16 @@
   <b>🧠 你的 AI 助手有 400+ 个技能，但你只知道 10 个。<br>Skill Aggregator 帮你找出该用哪个。</b>
 </p>
 
-[English](README.md) | 简体中文
+<p align="center">
+  <a href="README.md">English</a> ·
+  <a href="README_CN.md">中文</a> ·
+  <a href="docs/i18n/README.ja.md">日本語</a> ·
+  <a href="docs/i18n/README.ko.md">한국어</a> ·
+  <a href="docs/i18n/README.fr.md">Français</a> ·
+  <a href="docs/i18n/README.es.md">Español</a> ·
+  <a href="docs/i18n/README.ru.md">Русский</a> ·
+  <a href="docs/i18n/README.ar.md">العربية</a>
+</p>
 
 ---
 
@@ -99,7 +108,7 @@ skill-aggregator --intent-only "帮我搞一下那个"
 ### 技能健康体检
 
 ```bash
-skill-aggregator clean
+skill-aggregator --clean
 # 🧹 技能清洗报告
 #   ├─ 总技能数: 390
 #   ├─ 有效技能: 350
@@ -110,7 +119,7 @@ skill-aggregator clean
 # ℹ️  22 个提示 — 缺 tags
 
 # 自动修复
-skill-aggregator clean --fix
+skill-aggregator --clean --fix
 ```
 
 ### 集成到代码里
@@ -174,7 +183,7 @@ pip install -e ".[dev]"
 - **个人开发者** — 装了 50+ 个 AI 技能，根本记不住
 - **团队** — 新人不知道团队积累了什么 skill，用它快速发现
 - **Agent 开发者** — 写 AI Agent 时，用它动态推荐技能
-- **CI 管道** — `clean --json` 检测技能健康
+- **CI 管道** — `--clean --json` 检测技能健康
 
 ---
 

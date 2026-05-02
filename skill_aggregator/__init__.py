@@ -120,10 +120,9 @@ def check_and_rebuild_index() -> bool:
 
 # 自动检查索引（仅在非脚本环境下）
 if __name__ != "__main__":
-    # 静默检查，不打印输出
     try:
         check_and_rebuild_index()
-    except Exception:
-        # 忽略错误，避免影响导入
-        pass
+    except Exception as e:
+        import logging
+        logging.warning("skill_aggregator: auto-index check failed: %s", e)
 
