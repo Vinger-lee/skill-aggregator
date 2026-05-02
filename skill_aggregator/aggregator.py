@@ -220,9 +220,30 @@ def cli_main():
 
   # 澄清模式：输出澄清建议
   skill-aggregator --clarify "做个水墨动画"
+
+  # 技能清洗：扫描并检测技能问题
+  skill-aggregator clean
+  skill-aggregator clean --json
+  skill-aggregator clean --fix
         """,
     )
 
+    subparsers = parser.add_subparsers(dest="command", help="子命令")
+
+    # clean 子命令
+    clean_parser = subparsers.add_parser("clean", help="扫描并检测技能问题")
+    clean_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="输出 JSON 格式",
+    )
+    clean_parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="自动修复可修复的问题（默认 dry_run=True）",
+    )
+
+    # 主命令参数
     parser.add_argument("task", nargs="*", help="任务描述")
     parser.add_argument(
         "--intent-only",
@@ -242,6 +263,30 @@ def cli_main():
     )
 
     args = parser.parse_args()
+
+    # 处理 clean 子命令
+    if args.command == "clean":
+        from cleaner import SkillCleaner
+        import json as json_module
+
+        cleaner = SkillCleaner()
+
+        if args.fix:
+            result = cleaner.fix(dry_run=False)
+            print(f"{Colors.GREEN}✓ 修复完成{Colors.RESET}")
+            print(f"  ├─ 已修复: {result['fixed']}")
+            print(f"  └─ 失败: {result['failed']}")
+            sys.exit(0)
+
+        if args.json:
+            scan_result = cleaner.scan()
+            print(json_module.dumps(scan_result, indent=2, ensure_ascii=False))
+            sys.exit(0)
+
+        # 默认：打印报告
+        report = cleaner.report()
+        print(report)
+        sys.exit(0)
 
     # 检查任务描述
     if not args.task:

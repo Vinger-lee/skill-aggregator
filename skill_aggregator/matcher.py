@@ -51,7 +51,12 @@ class TaskMatcher:
             return json.load(f)
 
     def _tokenize(self, text: str) -> List[str]:
-        """分词（简单实现）。
+        """分词（支持中英文混合）。
+
+        检测文本是否含 CJK 字符，自动选择分词策略：
+        - 纯英文 → 正则分词
+        - 含中文 → jieba 分词
+        - 混合文本 → 正则提取英文 + jieba 切中文，合并
 
         Args:
             text: 输入文本
@@ -59,71 +64,65 @@ class TaskMatcher:
         Returns:
             词列表
         """
-        # 转小写并提取单词
-        text = text.lower()
-        words = re.findall(r"\b\w+\b", text)
-        # 过滤停用词
+        text_lower = text.lower()
+
+        # 检测是否含 CJK 字符
+        has_cjk = bool(re.search(r'[一-鿿㐀-䶿]', text))
+
+        # 停用词（英文 + 中文）
         stopwords = {
-            "the",
-            "a",
-            "an",
-            "and",
-            "or",
-            "but",
-            "in",
-            "on",
-            "at",
-            "to",
-            "for",
-            "of",
-            "with",
-            "by",
-            "from",
-            "is",
-            "are",
-            "was",
-            "were",
-            "be",
-            "been",
-            "being",
-            "have",
-            "has",
-            "had",
-            "do",
-            "does",
-            "did",
-            "will",
-            "would",
-            "should",
-            "can",
-            "could",
-            "may",
-            "might",
-            "must",
-            "这",
-            "是",
-            "的",
-            "了",
-            "在",
-            "和",
-            "有",
-            "我",
-            "你",
-            "他",
-            "她",
-            "它",
-            "们",
-            "个",
-            "用",
-            "给",
-            "把",
-            "让",
-            "要",
-            "会",
-            "能",
-            "可以",
+            # 英文停用词
+            "the", "a", "an", "and", "or", "but", "in", "on", "at", "to",
+            "for", "of", "with", "by", "from", "is", "are", "was", "were",
+            "be", "been", "being", "have", "has", "had", "do", "does", "did",
+            "will", "would", "should", "can", "could", "may", "might", "must",
+            # 中文停用词
+            "的", "了", "是", "在", "和", "有", "我", "你", "他", "她", "它",
+            "们", "个", "用", "给", "把", "让", "要", "会", "能", "可以",
+            "这", "那", "不", "也", "就", "都", "很", "还", "再", "才",
+            "已经", "正在", "因为", "所以", "但是", "虽然", "如果", "或者",
+            "而且", "然后", "之后", "之前", "什么", "怎么", "哪里", "为什么",
+            "哪个", "怎样",
         }
-        return [w for w in words if w not in stopwords and len(w) > 1]
+
+        if not has_cjk:
+            # 纯英文：使用正则分词
+            words = re.findall(r"\b\w+\b", text_lower)
+            return [w for w in words if w not in stopwords and len(w) > 1]
+
+        # 含中文：使用 jieba 分词
+        try:
+            import jieba
+
+            # 提取英文词（保留原样）
+            english_words = set(re.findall(r"\b[a-z]+\b", text_lower))
+
+            # jieba 分词
+            tokens = list(jieba.cut(text_lower))
+
+            # 合并结果并过滤
+            result = []
+            for token in tokens:
+                token = token.strip()
+                if not token:
+                    continue
+                # 跳过停用词
+                if token in stopwords:
+                    continue
+                # 跳过单字符（除非是英文单词）
+                if len(token) == 1 and token not in english_words:
+                    continue
+                # 跳过纯标点
+                if re.match(r'^[\W_]+$', token):
+                    continue
+                result.append(token)
+
+            return result
+
+        except ImportError:
+            # jieba 未安装，回退到简单分词
+            words = re.findall(r"\b\w+\b", text_lower)
+            return [w for w in words if w not in stopwords and len(w) > 1]
 
     def _compute_tf(self, tokens: List[str]) -> Dict[str, float]:
         """计算词频（TF）。

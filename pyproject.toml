@@ -13,6 +13,9 @@ keywords = ["ai-agent", "skill-management", "intent-analysis", "hermes", "claude
 authors = [
     {name = "Vinger", email = "vinger@example.com"},
 ]
+dependencies = [
+    "jieba>=0.42.1",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
