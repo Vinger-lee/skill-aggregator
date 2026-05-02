@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skill-aggregator"
+version = "0.1.0"
+description = "🧠 AI Agent Skill Aggregator — 自动分析用户意图，推荐最优技能组合"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["ai-agent", "skill-management", "intent-analysis", "hermes", "claude-code"]
+authors = [
+    {name = "Vinger", email = "vinger@example.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/vinger-lee/skill-aggregator"
+Repository = "https://github.com/vinger-lee/skill-aggregator"
+Documentation = "https://github.com/vinger-lee/skill-aggregator#readme"
+
+[project.scripts]
+skill-aggregator = "skill_aggregator.aggregator:cli_main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["skill_aggregator*"]

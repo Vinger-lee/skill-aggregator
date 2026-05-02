@@ -1,0 +1,2 @@
+# Skill Aggregator
+# Dependencies are managed by the system Python
