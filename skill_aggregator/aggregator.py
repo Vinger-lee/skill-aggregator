@@ -5,7 +5,7 @@
 提供命令行界面和 Python API，用于任务分析和技能推荐。
 """
 
-import sys
+import sys, json
 from pathlib import Path
 from typing import List, Dict
 
@@ -254,6 +254,10 @@ def cli_main():
         "--json", action="store_true",
         help="配合 --clean 使用：输出 JSON 格式"
     )
+    parser.add_argument(
+        "--hermes", action="store_true",
+        help="Hermes Agent 模式：输出 JSON 格式的任务分析 + 行动建议"
+    )
     parser.add_argument("task", nargs="*", help="任务描述")
 
     args = parser.parse_args()
@@ -280,6 +284,86 @@ def cli_main():
         # 默认：打印报告
         report = cleaner.report()
         print(report)
+        sys.exit(0)
+
+    # Hermes Agent 模式
+    if args.hermes:
+        if not args.task:
+            print(json.dumps({"error": "缺少任务描述", "suggested_approach": "ask_user"}))
+            sys.exit(1)
+        task = " ".join(args.task)
+
+        # 分析意图
+        intent = analyze_intent(task)
+
+        # 匹配技能
+        results = match_by_intent(intent, top_n=5)
+        
+        ambiguity = intent.get("ambiguity", 0)
+        domain = intent.get("domain", "unknown")
+        activity = intent.get("activity", "unknown")
+
+        # 行动建议逻辑
+        if ambiguity > 0.3 and intent.get("clarifying"):
+            suggested_approach = "clarify"
+            suggested_model = None
+            suggested_effort = None
+            suggested_workflow = "先向用户提问澄清，再重新分析"
+        elif domain in ("writing", "translation", "research", "learning"):
+            suggested_approach = "direct"
+            suggested_model = "gemini"
+            suggested_effort = None
+            suggested_workflow = "简单任务，直接用 Gemini CLI 处理，省钱"
+        elif domain in ("coding", "debugging", "devops", "security"):
+            top_score = results[0]["score"] if results else 0
+            if top_score > 0.6 and any(k in results[0]["skill"] for k in ("test", "debug", "review", "plan")):
+                suggested_approach = "claude_code"
+                suggested_model = "opus-4-7"
+                suggested_effort = "max"
+                suggested_workflow = "复杂代码任务 → Claude Code (Opus 4.7 + --effort max)"
+            elif top_score > 0.4:
+                suggested_approach = "claude_code"
+                suggested_model = "sonnet-4-6"
+                suggested_effort = "high"
+                suggested_workflow = "中等代码任务 → Claude Code (Sonnet 4.6)"
+            else:
+                suggested_approach = "direct"
+                suggested_model = "gemini"
+                suggested_effort = None
+                suggested_workflow = "简单代码任务 → Gemini CLI，省钱"
+        elif domain in ("design", "creative"):
+            suggested_approach = "direct"
+            suggested_model = "gemini"
+            suggested_effort = None
+            suggested_workflow = "创意设计任务 → 加载对应 skill 直接处理"
+        else:
+            suggested_approach = "direct"
+            suggested_model = None
+            suggested_effort = None
+            suggested_workflow = "通用任务，自行判断最佳方案"
+
+        output = {
+            "intent": {
+                "domain": domain,
+                "activity": activity,
+                "stack": intent.get("stack", []),
+                "ambiguity": ambiguity,
+                "goal": intent.get("goal", ""),
+            },
+            "top_skills": [
+                {"name": r["skill"], "score": r["score"]}
+                for r in results[:5]
+            ],
+            "suggested": {
+                "approach": suggested_approach,
+                "model": suggested_model,
+                "effort": suggested_effort,
+                "workflow": suggested_workflow,
+            },
+            "need_clarification": ambiguity > 0.3,
+            "clarifying_questions": intent.get("clarifying", []),
+        }
+        print(json.dumps(output, indent=2, ensure_ascii=False))
         sys.exit(0)
 
     # 检查任务描述
